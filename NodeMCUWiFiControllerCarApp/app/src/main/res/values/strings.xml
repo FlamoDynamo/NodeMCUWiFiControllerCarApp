@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">NodeMCUWiFiControllerCarApp</string>
-    <string name="wifi_control_car" />
-    <string name="speed" />
-    <string name="_0" />
-</resources>
