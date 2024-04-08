@@ -1,4 +1,3 @@
-//This is sample code from internet, I will update the new code soon
 #define ENA   14          // Enable/speed motors Right        GPIO14(D5)
 #define ENB   12          // Enable/speed motors Left         GPIO12(D6)
 #define IN_1  15          // L298N in1 motors Right           GPIO15(D8)
@@ -11,8 +10,7 @@
 #include <ESP8266WebServer.h>
 
 String command;             //String to store app command state.
-int speedCar = 800;         // 400 - 1023.
-int speed_Coeff = 3;
+int speedCar = 255;         // 400 - 1023.
 
 const char* ssid = "NodeMCU Car";
 ESP8266WebServer server(80);
@@ -28,8 +26,7 @@ void setup() {
   
   Serial.begin(115200);
   
-// Connecting WiFi
-
+  // Connecting WiFi
   WiFi.mode(WIFI_AP);
   WiFi.softAP(ssid);
 
@@ -38,140 +35,99 @@ void setup() {
   Serial.println(myIP);
  
  // Starting WEB-server 
-     server.on ( "/", HTTP_handleRoot );
-     server.onNotFound ( HTTP_handleRoot );
-     server.begin();    
+  server.on("/", HTTP_handleRoot);
+  server.onNotFound(HTTP_handleRoot);
+  server.begin();    
 }
 
 void goAhead(){ 
+  digitalWrite(IN_1, LOW);
+  digitalWrite(IN_2, HIGH);
+  analogWrite(ENA, speedCar);
 
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar);
-
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar);
-  }
+  digitalWrite(IN_3, LOW);
+  digitalWrite(IN_4, HIGH);
+  analogWrite(ENB, speedCar);
+}
 
 void goBack(){ 
+  digitalWrite(IN_1, HIGH);
+  digitalWrite(IN_2, LOW);
+  analogWrite(ENA, speedCar);
 
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar);
-
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENB, speedCar);
-  }
+  digitalWrite(IN_3, HIGH);
+  digitalWrite(IN_4, LOW);
+  analogWrite(ENB, speedCar);
+}
 
 void goRight(){ 
+  digitalWrite(IN_1, HIGH);
+  digitalWrite(IN_2, LOW);
+  analogWrite(ENA, speedCar);
 
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar);
-
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar);
-  }
+  digitalWrite(IN_3, LOW);
+  digitalWrite(IN_4, HIGH);
+  analogWrite(ENB, speedCar);
+}
 
 void goLeft(){
+  digitalWrite(IN_1, LOW);
+  digitalWrite(IN_2, HIGH);
+  analogWrite(ENA, speedCar);
 
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar);
-
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENB, speedCar);
-  }
-
-void goAheadRight(){
-      
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar/speed_Coeff);
- 
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar);
-   }
-
-void goAheadLeft(){
-      
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, HIGH);
-      analogWrite(ENA, speedCar);
-
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, HIGH);
-      analogWrite(ENB, speedCar/speed_Coeff);
-  }
-
-void goBackRight(){ 
-
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar/speed_Coeff);
-
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENB, speedCar);
-  }
-
-void goBackLeft(){ 
-
-      digitalWrite(IN_1, HIGH);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar);
-
-      digitalWrite(IN_3, HIGH);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENB, speedCar/speed_Coeff);
-  }
+  digitalWrite(IN_3, HIGH);
+  digitalWrite(IN_4, LOW);
+  analogWrite(ENB, speedCar);
+}
 
 void stopRobot(){  
+  digitalWrite(IN_1, LOW);
+  digitalWrite(IN_2, LOW);
+  analogWrite(ENA, speedCar);
 
-      digitalWrite(IN_1, LOW);
-      digitalWrite(IN_2, LOW);
-      analogWrite(ENA, speedCar);
-
-      digitalWrite(IN_3, LOW);
-      digitalWrite(IN_4, LOW);
-      analogWrite(ENB, speedCar);
- }
+  digitalWrite(IN_3, LOW);
+  digitalWrite(IN_4, LOW);
+  analogWrite(ENB, speedCar);
+}
 
 void loop() {
-    server.handleClient();
-    
-      command = server.arg("State");
-      if (command == "F") goAhead();
-      else if (command == "B") goBack();
-      else if (command == "L") goLeft();
-      else if (command == "R") goRight();
-      else if (command == "I") goAheadRight();
-      else if (command == "G") goAheadLeft();
-      else if (command == "J") goBackRight();
-      else if (command == "H") goBackLeft();
-      else if (command == "0") speedCar = 400;
-      else if (command == "1") speedCar = 470;
-      else if (command == "2") speedCar = 540;
-      else if (command == "3") speedCar = 610;
-      else if (command == "4") speedCar = 680;
-      else if (command == "5") speedCar = 750;
-      else if (command == "6") speedCar = 820;
-      else if (command == "7") speedCar = 890;
-      else if (command == "8") speedCar = 960;
-      else if (command == "9") speedCar = 1023;
-      else if (command == "S") stopRobot();
+  server.handleClient();
+      
+  // Nhận dữ liệu từ ứng dụng Android
+  if (server.hasArg("speed")) {
+    int newSpeed = server.arg("speed").toInt();
+    if (newSpeed >= 0 && newSpeed <= 255) {
+      speedCar = newSpeed;
+    } else {
+      // Nếu tốc độ nằm ngoài phạm vi hợp lệ, giữ nguyên giá trị cũ
+      Serial.println("Invalid speed value: " + server.arg("speed"));
+    }
+  }
+  
+  // Nhận dữ liệu từ joystick
+  if (server.hasArg("x") && server.hasArg("y")) {
+    float xPercent = server.arg("x").toFloat();
+    float yPercent = server.arg("y").toFloat();
+
+    // Xử lý dữ liệu từ joystick để điều khiển xe
+    if (xPercent > 0 && yPercent > 0) {
+      goAhead();
+    } else if (xPercent < 0 && yPercent > 0) {
+      goLeft();
+    } else if (xPercent > 0 && yPercent < 0) {
+      goRight();
+    } else if (xPercent < 0 && yPercent < 0) {
+      goBack();
+    } else {
+      stopRobot();
+    }
+  }
 }
 
 void HTTP_handleRoot(void) {
-
-if( server.hasArg("State") ){
-       Serial.println(server.arg("State"));
+  if (server.hasArg("speed") || server.hasArg("x") || server.hasArg("y")) {
+    Serial.println(server.arg("speed") + ", " + server.arg("x") + ", " + server.arg("y"));
   }
-  server.send ( 200, "text/html", "" );
+  server.send(200, "text/html", "");
   delay(1);
 }
